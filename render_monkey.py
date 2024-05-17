@@ -1,10 +1,10 @@
 import json
+import math
+import pathlib
 import random
 
 import bpy
 import mathutils
-import math
-import pathlib
 
 
 # Total: 10 60 10
@@ -65,8 +65,8 @@ def capture_images(
 ):
     angles = []
     if random_sampling:
-        mu = (start_frame + end_frame) / 2
-        sigma = 1
+        mu = start_frame
+        sigma = 10
         for _ in range(num_images):
             angle = random.gauss(mu, sigma) / num_frames * 2 * math.pi
             angles.append(angle)
@@ -109,7 +109,7 @@ def main():
     # 설정 값
     current_dir = pathlib.Path(__file__).parent.absolute()
     output_dir = current_dir / "output"
-    blend_file_path = "/Users/yanghyeonseo/Downloads/shelf.blend"
+    # blend_file_path = input_file
     train_output_dir = output_dir / "train"
     test_output_dir = output_dir / "test"
     camera_info_path = output_dir / "camera_info.json"
@@ -124,7 +124,7 @@ def main():
     radius = 6  # 카메라가 원점을 기준으로 떨어진 거리
 
     # Blend 파일 열기
-    bpy.ops.wm.open_mainfile(filepath=blend_file_path)
+    # bpy.ops.wm.open_mainfile(filepath=blend_file_path)
 
     # 카메라 가져오기 (기본 카메라가 있다고 가정)
     camera = bpy.data.objects["Camera"]
@@ -149,6 +149,18 @@ def main():
     # 2D 렌더링 설정
     image_width = 800
     image_height = 800
+    # 흰색 설정
+    bpy.context.scene.world.node_tree.nodes["Background"].inputs[0].default_value = (
+        1,
+        1,
+        1,
+        1,
+    )  # 흰색 RGBA
+    bpy.context.scene.display_settings.display_device = "sRGB"
+    bpy.context.scene.view_settings.view_transform = "Standard"
+    bpy.context.scene.view_settings.look = "None"
+    bpy.context.scene.view_settings.exposure = 0.0
+    bpy.context.scene.view_settings.gamma = 1.0
 
     bpy.context.scene.render.image_settings.file_format = "PNG"
     bpy.context.scene.render.resolution_x = image_width
@@ -164,11 +176,11 @@ def main():
         train_output_dir,
         train_frames,
         num_frames,
-        21,
-        33,
+        0,
+        35,
         60,
         global_i,
-        z_offset=-0.75,
+        z_offset=0,
     )
 
     global_i = capture_images(
@@ -177,11 +189,11 @@ def main():
         train_output_dir,
         train_frames,
         num_frames,
-        21,
-        33,
+        0,
+        35,
         10,
         global_i,
-        z_offset=0.3,
+        z_offset=1,
     )
 
     global_i = capture_images(
@@ -190,11 +202,11 @@ def main():
         train_output_dir,
         train_frames,
         num_frames,
-        21,
-        33,
+        0,
+        35,
         10,
         global_i,
-        z_offset=-1.75,
+        z_offset=-1,
     )
 
     train_transforms_json["frames"] = train_frames
@@ -211,11 +223,11 @@ def main():
         test_output_dir,
         test_frames,
         num_frames,
-        21,
-        33,
+        0,  # 21
+        35,  # 33
         4,
         global_i,
-        z_offset=0.3,
+        z_offset=1,
         random_sampling=True,
     )
 
@@ -225,11 +237,11 @@ def main():
         test_output_dir,
         test_frames,
         num_frames,
-        21,
-        33,
+        0,
+        35,
         2,
         global_i,
-        z_offset=-1.75,
+        z_offset=-1,
         random_sampling=True,
     )
 
@@ -239,11 +251,11 @@ def main():
         test_output_dir,
         test_frames,
         num_frames,
-        21,
-        33,
+        0,
+        35,
         4,
         global_i,
-        z_offset=-0.75,
+        z_offset=0,
         random_sampling=True,
     )
 

@@ -65,11 +65,9 @@ def capture_images(
 ):
     angles = []
     if random_sampling:
-        mu = start_frame
-        sigma = 10
         for _ in range(num_images):
-            angle = random.gauss(mu, sigma) / num_frames * 2 * math.pi
-            angles.append(angle)
+            angle = random.uniform(0, 360)
+            angles.append(math.radians(angle))
     else:
         angles = [
             (start_frame + (i / num_images) * (end_frame - start_frame))
@@ -180,7 +178,7 @@ def main():
         35,
         60,
         global_i,
-        z_offset=0,
+        z_offset=-0.5,
     )
 
     global_i = capture_images(
@@ -206,7 +204,7 @@ def main():
         35,
         10,
         global_i,
-        z_offset=-1,
+        z_offset=-2,
     )
 
     train_transforms_json["frames"] = train_frames
@@ -241,7 +239,7 @@ def main():
         35,
         2,
         global_i,
-        z_offset=-1,
+        z_offset=-1.5,
         random_sampling=True,
     )
 
@@ -255,7 +253,7 @@ def main():
         35,
         4,
         global_i,
-        z_offset=0,
+        z_offset=-0.5,
         random_sampling=True,
     )
 

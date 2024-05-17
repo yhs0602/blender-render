@@ -65,8 +65,8 @@ def capture_images(
 ):
     angles = []
     if random_sampling:
-        mu = start_frame
-        sigma = 10
+        mu = (start_frame + end_frame) / 2
+        sigma = 1
         for _ in range(num_images):
             angle = random.gauss(mu, sigma) / num_frames * 2 * math.pi
             angles.append(angle)
@@ -176,11 +176,11 @@ def main():
         train_output_dir,
         train_frames,
         num_frames,
-        0,
-        35,
+        21,  # 21
+        33,  # 33
         60,
         global_i,
-        z_offset=0,
+        z_offset=-0.75,
     )
 
     global_i = capture_images(
@@ -189,11 +189,11 @@ def main():
         train_output_dir,
         train_frames,
         num_frames,
-        0,
-        35,
+        21,  # 21
+        33,  # 33
         10,
         global_i,
-        z_offset=1,
+        z_offset=0.3,
     )
 
     global_i = capture_images(
@@ -202,11 +202,11 @@ def main():
         train_output_dir,
         train_frames,
         num_frames,
-        0,
-        35,
+        21,  # 21
+        33,  # 33
         10,
         global_i,
-        z_offset=-1,
+        z_offset=-1.75,
     )
 
     train_transforms_json["frames"] = train_frames
@@ -223,11 +223,11 @@ def main():
         test_output_dir,
         test_frames,
         num_frames,
-        0,  # 21
-        35,  # 33
+        21,  # 21
+        33,  # 33
         4,
         global_i,
-        z_offset=1,
+        z_offset=0.3,
         random_sampling=True,
     )
 
@@ -237,11 +237,11 @@ def main():
         test_output_dir,
         test_frames,
         num_frames,
-        0,
-        35,
+        21,  # 21
+        33,  # 33
         2,
         global_i,
-        z_offset=-1,
+        z_offset=-1.75,
         random_sampling=True,
     )
 
@@ -251,11 +251,11 @@ def main():
         test_output_dir,
         test_frames,
         num_frames,
-        0,
-        35,
+        21,  # 21
+        33,  # 33
         4,
         global_i,
-        z_offset=0,
+        z_offset=-0.75,
         random_sampling=True,
     )
 

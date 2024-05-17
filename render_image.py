@@ -59,7 +59,8 @@ def capture_images(
     start_frame,
     end_frame,
     num_images,
-    z_offset=0,
+    global_i: int,
+    z_offset=0.0,
 ):
     for i in range(num_images):
         # 각 구간에서의 각도 계산
@@ -71,7 +72,7 @@ def capture_images(
         )
         empty.rotation_euler[2] = angle
         camera.location.z = 1 + z_offset  # z_offset을 적용하여 카메라 높이 조정
-        output_file = f"{output_dir}/z_{z_offset}_{i:03d}.png"
+        output_file = f"{output_dir}/{(global_i + i):03d}.png"
         bpy.context.scene.render.filepath = output_file
         bpy.ops.render.render(write_still=True)
         pos, rt, scale = camera.matrix_world.decompose()
@@ -90,6 +91,7 @@ def capture_images(
 
         to_add = {"file_path": output_file, "transform_matrix": matrix}
         frames.append(to_add)
+    return global_i + num_images
 
 
 def main():
@@ -102,7 +104,7 @@ def main():
         output_dir.mkdir()
 
     num_frames = 36  # 렌더링할 이미지 수 (360도를 나누어 회전할 프레임 수)
-    radius = 10  # 카메라가 원점을 기준으로 떨어진 거리
+    radius = 6  # 카메라가 원점을 기준으로 떨어진 거리
 
     # Blend 파일 열기
     bpy.ops.wm.open_mainfile(filepath=blend_file_path)
@@ -121,6 +123,12 @@ def main():
     # 카메라를 빈 오브젝트에 부모로 설정
     camera.parent = empty
 
+    # 카메라가 항상 원점을 바라보도록 설정
+    track_to_constraint = camera.constraints.new(type="TRACK_TO")
+    track_to_constraint.target = empty
+    track_to_constraint.track_axis = "TRACK_NEGATIVE_Z"
+    track_to_constraint.up_axis = "UP_Y"
+
     # 2D 렌더링 설정
     image_width = 800
     image_height = 800
@@ -128,17 +136,21 @@ def main():
     bpy.context.scene.render.image_settings.file_format = "PNG"
     bpy.context.scene.render.resolution_x = image_width
     bpy.context.scene.render.resolution_y = image_height
+    bpy.context.scene.render.resolution_percentage = 100  # 해상도 퍼센티지
 
     transforms_json = {}
     frames = []
-    capture_images(empty, camera, output_dir, frames, num_frames, 21, 33, 60)
-
-    capture_images(
-        empty, camera, output_dir, frames, num_frames, 21, 33, 10, z_offset=1
+    global_i = 0
+    global_i = capture_images(
+        empty, camera, output_dir, frames, num_frames, 21, 33, 60, global_i, z_offset=-0.75
     )
 
-    capture_images(
-        empty, camera, output_dir, frames, num_frames, 21, 33, 10, z_offset=-1
+    global_i = capture_images(
+        empty, camera, output_dir, frames, num_frames, 21, 33, 10, global_i, z_offset=1.2
+    )
+
+    global_i = capture_images(
+        empty, camera, output_dir, frames, num_frames, 21, 33, 10, global_i, z_offset=-1.7,
     )
 
     transforms_json["frames"] = frames

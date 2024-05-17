@@ -6,6 +6,7 @@ import random
 import bpy
 import mathutils
 
+
 # Sikpan: 360도, 테스트셋 유니폼 샘플링
 # Monkey: 360도, 테스트셋 유니폼 샘플링?
 # Shelf: 21, 33 사이만 돌아감. 테스트셋 가우스 샘플링
@@ -68,11 +69,10 @@ def capture_images(
 ):
     angles = []
     if random_sampling:
-        mu = (start_frame + end_frame) / 2
-        sigma = 1
         for _ in range(num_images):
-            angle = random.gauss(mu, sigma) / num_frames * 2 * math.pi
-            angles.append(angle)
+            angle = random.uniform(0, 360)
+            angles.append(math.radians(angle))
+
     else:
         angles = [
             (start_frame + (i / num_images) * (end_frame - start_frame))
@@ -179,8 +179,8 @@ def main():
         train_output_dir,
         train_frames,
         num_frames,
-        21,  # 21
-        33,  # 33
+        0,  # 21
+        35,  # 33
         60,
         global_i,
         z_offset=-0.75,
@@ -192,8 +192,8 @@ def main():
         train_output_dir,
         train_frames,
         num_frames,
-        21,  # 21
-        33,  # 33
+        0,  # 21
+        35,  # 33
         10,
         global_i,
         z_offset=0.3,
@@ -205,8 +205,8 @@ def main():
         train_output_dir,
         train_frames,
         num_frames,
-        21,  # 21
-        33,  # 33
+        0,  # 21
+        35,  # 33
         10,
         global_i,
         z_offset=-1.75,
@@ -226,8 +226,8 @@ def main():
         test_output_dir,
         test_frames,
         num_frames,
-        21,  # 21
-        33,  # 33
+        0,  # 21
+        35,  # 33
         4,
         global_i,
         z_offset=0.3,
@@ -240,8 +240,8 @@ def main():
         test_output_dir,
         test_frames,
         num_frames,
-        21,  # 21
-        33,  # 33
+        0,  # 21
+        35,  # 33
         2,
         global_i,
         z_offset=-1.75,
@@ -254,8 +254,8 @@ def main():
         test_output_dir,
         test_frames,
         num_frames,
-        21,  # 21
-        33,  # 33
+        0,  # 21
+        35,  # 33
         4,
         global_i,
         z_offset=-0.75,

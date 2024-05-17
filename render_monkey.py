@@ -165,7 +165,9 @@ def main():
     bpy.context.scene.render.resolution_y = image_height
     bpy.context.scene.render.resolution_percentage = 100  # 해상도 퍼센티지
 
-    train_transforms_json = {}
+    train_transforms_json = {
+        "camera_angle_x": bpy.data.cameras[0].angle_x,
+    }
     train_frames = []
     global_i = 0
     global_i = capture_images(
@@ -257,7 +259,10 @@ def main():
         random_sampling=True,
     )
 
-    test_transforms_json = {"frames": test_frames}
+    test_transforms_json = {
+        "camera_angle_x": bpy.data.cameras[0].angle_x,
+        "frames": test_frames,
+    }
 
     with open(output_dir / "transforms_test.json", "w") as f:
         json.dump(test_transforms_json, f, indent=4)

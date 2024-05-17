@@ -7,6 +7,12 @@ import math
 import pathlib
 
 
+# Total: 10 60 10
+# Up: 2 * 2
+# Middle: 2 * 2
+# Down: 1 * 2
+
+
 # function from https://github.com/panmari/stanford-shapenet-renderer/blob/master/render_blender.py
 def get_3x4_RT_matrix_from_blender(cam):
     # bcam stands for blender camera
@@ -44,108 +50,108 @@ def get_3x4_RT_matrix_from_blender(cam):
     return RT
 
 
-# 설정 값
-current_dir = pathlib.Path(__file__).parent.absolute()
-output_dir = current_dir / "output"
-blend_file_path = "/Users/yanghyeonseo/Downloads/shelf.blend"
-camera_info_path = output_dir / "camera_info.json"
-if not output_dir.exists():
-    output_dir.mkdir()
-
-num_frames = 36  # 렌더링할 이미지 수 (360도를 나누어 회전할 프레임 수)
-radius = 10  # 카메라가 원점을 기준으로 떨어진 거리
-
-# Blend 파일 열기
-bpy.ops.wm.open_mainfile(filepath=blend_file_path)
-
-# 카메라 가져오기 (기본 카메라가 있다고 가정)
-camera = bpy.data.objects["Camera"]
-
-# 카메라 설정
-camera.location = (0, -radius, 1)
-camera.rotation_euler = (math.pi / 2, 0, 0)
-
-# 원점에 빈 오브젝트 추가 (카메라의 회전 축)
-bpy.ops.object.empty_add(type="PLAIN_AXES", location=(0, 0, 0))
-empty = bpy.context.active_object
-
-# 카메라를 빈 오브젝트에 부모로 설정
-camera.parent = empty
-
-# 2D 렌더링 설정
-bpy.context.scene.render.image_settings.file_format = "PNG"
-
-# 렌더링할 카메라 정보 저장할 리스트
-camera_info = []
-frames = []
-transforms_json = {}
-# 카메라 회전 및 렌더링
-for i in range(num_frames):
-    angle = (i / num_frames) * 2 * math.pi
-    empty.rotation_euler[2] = angle
-    output_file = f"{output_dir}/{i:03d}.png"
-    bpy.context.scene.render.filepath = output_file
-    bpy.ops.render.render(write_still=True)
-
-    # transforms.json
-    # rt = get_3x4_RT_matrix_from_blender(camera)
-    pos, rt, scale = camera.matrix_world.decompose()
-
-    rt = rt.to_matrix()
-
-    matrix = []
-    for ii in range(3):
-        a = []
-        for jj in range(3):
-            a.append(rt[ii][jj])
-        a.append(pos[ii])
-        matrix.append(a)
-    matrix.append([0, 0, 0, 1])
-    print(matrix)
-
-    to_add = {"file_path": f"{str(i).zfill(3)}.png", "transform_matrix": matrix}
-    frames.append(to_add)
-
-    # 카메라의 extrinsic 행렬 계산
-    camera_matrix_world = camera.matrix_world
-    extrinsic_matrix = camera_matrix_world.inverted()
-    # 카메라의 intrinsic 행렬 계산
-    scene = bpy.context.scene
-    render = scene.render
-    resolution_x = render.resolution_x
-    resolution_y = render.resolution_y
-    scale = render.resolution_percentage / 100.0
-    sensor_width = camera.data.sensor_width
-    sensor_height = camera.data.sensor_height
-    focal_length = camera.data.lens
-
-    intrinsic_matrix = mathutils.Matrix(
-        (
-            (focal_length * scale, 0, resolution_x / 2.0),
-            (
-                0,
-                focal_length * scale * (resolution_x / resolution_y),
-                resolution_y / 2.0,
-            ),
-            (0, 0, 1),
+def capture_images(
+    empty,
+    camera,
+    output_dir,
+    frames,
+    num_frames,
+    start_frame,
+    end_frame,
+    num_images,
+    z_offset=0,
+):
+    for i in range(num_images):
+        # 각 구간에서의 각도 계산
+        angle = (
+            (start_frame + (i / num_images) * (end_frame - start_frame))
+            / num_frames
+            * 2
+            * math.pi
         )
+        empty.rotation_euler[2] = angle
+        camera.location.z = 1 + z_offset  # z_offset을 적용하여 카메라 높이 조정
+        output_file = f"{output_dir}/z_{z_offset}_{i:03d}.png"
+        bpy.context.scene.render.filepath = output_file
+        bpy.ops.render.render(write_still=True)
+        pos, rt, scale = camera.matrix_world.decompose()
+
+        rt = rt.to_matrix()
+
+        matrix = []
+        for ii in range(3):
+            a = []
+            for jj in range(3):
+                a.append(rt[ii][jj])
+            a.append(pos[ii])
+            matrix.append(a)
+        matrix.append([0, 0, 0, 1])
+        # print(matrix)
+
+        to_add = {"file_path": output_file, "transform_matrix": matrix}
+        frames.append(to_add)
+
+
+def main():
+    # 설정 값
+    current_dir = pathlib.Path(__file__).parent.absolute()
+    output_dir = current_dir / "output"
+    blend_file_path = "/Users/yanghyeonseo/Downloads/shelf.blend"
+    camera_info_path = output_dir / "camera_info.json"
+    if not output_dir.exists():
+        output_dir.mkdir()
+
+    num_frames = 36  # 렌더링할 이미지 수 (360도를 나누어 회전할 프레임 수)
+    radius = 10  # 카메라가 원점을 기준으로 떨어진 거리
+
+    # Blend 파일 열기
+    bpy.ops.wm.open_mainfile(filepath=blend_file_path)
+
+    # 카메라 가져오기 (기본 카메라가 있다고 가정)
+    camera = bpy.data.objects["Camera"]
+
+    # 카메라 설정
+    camera.location = (0, -radius, 1)
+    camera.rotation_euler = (math.pi / 2, 0, 0)
+
+    # 원점에 빈 오브젝트 추가 (카메라의 회전 축)
+    bpy.ops.object.empty_add(type="PLAIN_AXES", location=(0, 0, 0))
+    empty = bpy.context.active_object
+
+    # 카메라를 빈 오브젝트에 부모로 설정
+    camera.parent = empty
+
+    # 2D 렌더링 설정
+    image_width = 800
+    image_height = 800
+
+    bpy.context.scene.render.image_settings.file_format = "PNG"
+    bpy.context.scene.render.resolution_x = image_width
+    bpy.context.scene.render.resolution_y = image_height
+
+    transforms_json = {}
+    frames = []
+    capture_images(empty, camera, output_dir, frames, num_frames, 21, 33, 60)
+
+    capture_images(
+        empty, camera, output_dir, frames, num_frames, 21, 33, 10, z_offset=1
     )
-    # 카메라 정보 저장
-    camera_info.append(
-        {
-            "file_path": output_file,
-            "extrinsic_matrix": list(map(list, extrinsic_matrix)),
-            "intrinsic_matrix": list(map(list, intrinsic_matrix)),
-        }
+
+    capture_images(
+        empty, camera, output_dir, frames, num_frames, 21, 33, 10, z_offset=-1
     )
 
-transforms_json["frames"] = frames
+    transforms_json["frames"] = frames
 
-# 카메라 정보 JSON 파일로 저장
-with open(camera_info_path, "w") as f:
-    json.dump(camera_info, f, indent=4)
+    # 카메라 정보 JSON 파일로 저장
+    # with open(camera_info_path, "w") as f:
+    #     json.dump(camera_info, f, indent=4)
 
-with open(output_dir / "transforms.json", "w") as f:
-    json.dump(transforms_json, f, indent=4)
+    with open(output_dir / "transforms.json", "w") as f:
+        json.dump(transforms_json, f, indent=4)
 
-print("Rendering completed successfully.")
+    print("Rendering completed successfully.")
+
+
+if __name__ == "__main__":
+    main()

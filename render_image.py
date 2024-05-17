@@ -61,18 +61,29 @@ def capture_images(
     num_images,
     global_i: int,
     z_offset=0.0,
+    random_sampling=False,
 ):
-    for i in range(num_images):
-        # 각 구간에서의 각도 계산
-        angle = (
+    angles = []
+    if random_sampling:
+        mu = (start_frame + end_frame) / 2
+        sigma = 1
+        for _ in range(num_images):
+            angle = random.gauss(mu, sigma) / num_frames * 2 * math.pi
+            angles.append(angle)
+    else:
+        angles = [
             (start_frame + (i / num_images) * (end_frame - start_frame))
             / num_frames
             * 2
             * math.pi
-        )
+            for i in range(num_images)
+        ]
+
+    for i, angle in enumerate(angles):
         empty.rotation_euler[2] = angle
         camera.location.z = 1 + z_offset  # z_offset을 적용하여 카메라 높이 조정
         output_file = f"{output_dir}/{(global_i + i):03d}.png"
+        output_relative_path = f"{output_dir.name}/{(global_i + i):03d}.png"
         bpy.context.scene.render.filepath = output_file
         bpy.ops.render.render(write_still=True)
         pos, rt, scale = camera.matrix_world.decompose()
@@ -89,7 +100,7 @@ def capture_images(
         matrix.append([0, 0, 0, 1])
         # print(matrix)
 
-        to_add = {"file_path": output_file, "transform_matrix": matrix}
+        to_add = {"file_path": output_relative_path, "transform_matrix": matrix}
         frames.append(to_add)
     return global_i + num_images
 
@@ -99,9 +110,15 @@ def main():
     current_dir = pathlib.Path(__file__).parent.absolute()
     output_dir = current_dir / "output"
     blend_file_path = "/Users/yanghyeonseo/Downloads/shelf.blend"
+    train_output_dir = output_dir / "train"
+    test_output_dir = output_dir / "test"
     camera_info_path = output_dir / "camera_info.json"
     if not output_dir.exists():
         output_dir.mkdir()
+    if not train_output_dir.exists():
+        train_output_dir.mkdir()
+    if not test_output_dir.exists():
+        test_output_dir.mkdir()
 
     num_frames = 36  # 렌더링할 이미지 수 (360도를 나누어 회전할 프레임 수)
     radius = 6  # 카메라가 원점을 기준으로 떨어진 거리
@@ -138,29 +155,102 @@ def main():
     bpy.context.scene.render.resolution_y = image_height
     bpy.context.scene.render.resolution_percentage = 100  # 해상도 퍼센티지
 
-    transforms_json = {}
-    frames = []
+    train_transforms_json = {}
+    train_frames = []
     global_i = 0
     global_i = capture_images(
-        empty, camera, output_dir, frames, num_frames, 21, 33, 60, global_i, z_offset=-0.75
+        empty,
+        camera,
+        train_output_dir,
+        train_frames,
+        num_frames,
+        21,
+        33,
+        60,
+        global_i,
+        z_offset=-0.75,
     )
 
     global_i = capture_images(
-        empty, camera, output_dir, frames, num_frames, 21, 33, 10, global_i, z_offset=1.2
+        empty,
+        camera,
+        train_output_dir,
+        train_frames,
+        num_frames,
+        21,
+        33,
+        10,
+        global_i,
+        z_offset=1.2,
     )
 
     global_i = capture_images(
-        empty, camera, output_dir, frames, num_frames, 21, 33, 10, global_i, z_offset=-1.7,
+        empty,
+        camera,
+        train_output_dir,
+        train_frames,
+        num_frames,
+        21,
+        33,
+        10,
+        global_i,
+        z_offset=-1.7,
     )
 
-    transforms_json["frames"] = frames
+    train_transforms_json["frames"] = train_frames
 
-    # 카메라 정보 JSON 파일로 저장
-    # with open(camera_info_path, "w") as f:
-    #     json.dump(camera_info, f, indent=4)
+    with open(output_dir / "transforms_train.json", "w") as f:
+        json.dump(train_transforms_json, f, indent=4)
 
-    with open(output_dir / "transforms.json", "w") as f:
-        json.dump(transforms_json, f, indent=4)
+    # Test set capture
+    test_frames = []
+    global_i = 0
+    global_i = capture_images(
+        empty,
+        camera,
+        test_output_dir,
+        test_frames,
+        num_frames,
+        21,
+        33,
+        4,
+        global_i,
+        z_offset=1.2,
+        random_sampling=True,
+    )
+
+    global_i = capture_images(
+        empty,
+        camera,
+        test_output_dir,
+        test_frames,
+        num_frames,
+        21,
+        33,
+        2,
+        global_i,
+        z_offset=-1.7,
+        random_sampling=True,
+    )
+
+    global_i = capture_images(
+        empty,
+        camera,
+        test_output_dir,
+        test_frames,
+        num_frames,
+        21,
+        33,
+        4,
+        global_i,
+        z_offset=-0.75,
+        random_sampling=True,
+    )
+
+    test_transforms_json = {"frames": test_frames}
+
+    with open(output_dir / "transforms_test.json", "w") as f:
+        json.dump(test_transforms_json, f, indent=4)
 
     print("Rendering completed successfully.")
 

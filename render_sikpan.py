@@ -6,6 +6,9 @@ import random
 import bpy
 import mathutils
 
+# Sikpan: 360도, 테스트셋 유니폼 샘플링
+# Monkey: 360도, 테스트셋 유니폼 샘플링?
+# Shelf: 21, 33 사이만 돌아감. 테스트셋 가우스 샘플링
 
 # Total: 10 60 10
 # Up: 2 * 2

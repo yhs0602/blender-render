@@ -193,7 +193,7 @@ def main():
         35,
         10,
         global_i,
-        z_offset=1,
+        z_offset=3,
     )
 
     global_i = capture_images(
@@ -206,7 +206,7 @@ def main():
         35,
         10,
         global_i,
-        z_offset=-2,
+        z_offset=-3,
     )
 
     train_transforms_json["frames"] = train_frames
@@ -227,7 +227,7 @@ def main():
         35,  # 33
         4,
         global_i,
-        z_offset=1,
+        z_offset=3,
         random_sampling=True,
     )
 
@@ -241,7 +241,7 @@ def main():
         35,
         2,
         global_i,
-        z_offset=-1.5,
+        z_offset=-3,
         random_sampling=True,
     )
 

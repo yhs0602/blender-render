@@ -70,7 +70,7 @@ def capture_images(
     angles = []
     if random_sampling:
         for _ in range(num_images):
-            angle = random.uniform(0, 360)
+            angle = random.uniform(start_frame, end_frame) * 360 / 36
             angles.append(math.radians(angle))
 
     else:
@@ -170,54 +170,55 @@ def main():
     bpy.context.scene.render.resolution_y = image_height
     bpy.context.scene.render.resolution_percentage = 100  # 해상도 퍼센티지
 
-    train_transforms_json = {
-        "camera_angle_x": bpy.data.cameras[0].angle_x,
-    }
-    train_frames = []
-    global_i = 0
-    global_i = capture_images(
-        empty,
-        camera,
-        train_output_dir,
-        train_frames,
-        num_frames,
-        0,  # 21
-        35,  # 33
-        60,
-        global_i,
-        z_offset=-0.75,
-    )
+    if False:
+        train_transforms_json = {
+            "camera_angle_x": bpy.data.cameras[0].angle_x,
+        }
+        train_frames = []
+        global_i = 0
+        global_i = capture_images(
+            empty,
+            camera,
+            train_output_dir,
+            train_frames,
+            num_frames,
+            0,  # 21
+            35,  # 33
+            60,
+            global_i,
+            z_offset=-0.75,
+        )
 
-    global_i = capture_images(
-        empty,
-        camera,
-        train_output_dir,
-        train_frames,
-        num_frames,
-        0,  # 21
-        35,  # 33
-        10,
-        global_i,
-        z_offset=0.3,
-    )
+        global_i = capture_images(
+            empty,
+            camera,
+            train_output_dir,
+            train_frames,
+            num_frames,
+            0,  # 21
+            35,  # 33
+            10,
+            global_i,
+            z_offset=0.3,
+        )
 
-    global_i = capture_images(
-        empty,
-        camera,
-        train_output_dir,
-        train_frames,
-        num_frames,
-        0,  # 21
-        35,  # 33
-        10,
-        global_i,
-        z_offset=-1.75,
-    )
+        global_i = capture_images(
+            empty,
+            camera,
+            train_output_dir,
+            train_frames,
+            num_frames,
+            0,  # 21
+            35,  # 33
+            10,
+            global_i,
+            z_offset=-1.75,
+        )
 
-    train_transforms_json["frames"] = train_frames
+        train_transforms_json["frames"] = train_frames
 
-    with open(output_dir / "transforms_train.json", "w") as f:
-        json.dump(train_transforms_json, f, indent=4)
+        with open(output_dir / "transforms_train.json", "w") as f:
+            json.dump(train_transforms_json, f, indent=4)
 
     # Test set capture
     test_frames = []
@@ -228,9 +229,9 @@ def main():
         test_output_dir,
         test_frames,
         num_frames,
-        0,  # 21
-        35,  # 33
-        4,
+        8,  # 21 0 10 ~25
+        13,  # 33 35 40~52
+        2,
         global_i,
         z_offset=0.3,
         random_sampling=True,
@@ -242,9 +243,23 @@ def main():
         test_output_dir,
         test_frames,
         num_frames,
-        0,  # 21
-        35,  # 33
+        25,  # 21 0 10 ~25
+        30,  # 33 35 40~52
         2,
+        global_i,
+        z_offset=0.3,
+        random_sampling=True,
+    )
+
+    global_i = capture_images(
+        empty,
+        camera,
+        test_output_dir,
+        test_frames,
+        num_frames,
+        8,  # 21
+        13,  # 33
+        1,
         global_i,
         z_offset=-1.75,
         random_sampling=True,
@@ -256,9 +271,37 @@ def main():
         test_output_dir,
         test_frames,
         num_frames,
-        0,  # 21
-        35,  # 33
-        4,
+        25,  # 21
+        30,  # 33
+        1,
+        global_i,
+        z_offset=-1.75,
+        random_sampling=True,
+    )
+
+    global_i = capture_images(
+        empty,
+        camera,
+        test_output_dir,
+        test_frames,
+        num_frames,
+        8,  # 21
+        13,  # 33
+        2,
+        global_i,
+        z_offset=-0.75,
+        random_sampling=True,
+    )
+
+    global_i = capture_images(
+        empty,
+        camera,
+        test_output_dir,
+        test_frames,
+        num_frames,
+        25,  # 21
+        30,  # 33
+        2,
         global_i,
         z_offset=-0.75,
         random_sampling=True,

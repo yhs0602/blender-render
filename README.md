@@ -27,4 +27,7 @@ blender --background /Users/yanghyeonseo/Downloads/diningcar.blend --python rend
 ```shell
 blender --background /Users/yanghyeonseo/Downloads/cup.blend --python render_monkey.py
 ```
-
+## 콘센트 그리기
+```shell
+blender --background /Users/yanghyeonseo/Downloads/plug.blend --python render_outlet.py
+```

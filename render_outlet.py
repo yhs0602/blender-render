@@ -49,6 +49,7 @@ def capture_images(
         bpy.context.scene.render.filepath = output_file
         bpy.ops.render.render(write_still=True)
         pos, rt, scale = camera.matrix_world.decompose()
+        print(scale)
 
         rt = rt.to_matrix()
 
@@ -83,7 +84,7 @@ def main():
         test_output_dir.mkdir()
 
     num_frames = 36  # 렌더링할 이미지 수 (360도를 나누어 회전할 프레임 수)
-    radius = 8  # 카메라가 원점을 기준으로 떨어진 거리
+    radius = 6  # 카메라가 원점을 기준으로 떨어진 거리
 
     # Blend 파일 열기
     # bpy.ops.wm.open_mainfile(filepath=blend_file_path)
